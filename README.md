@@ -32,8 +32,8 @@ struct User: Codable {
 }
 
 struct Defaults {
-     @UserDefault("default_user")
-      static var defaultUser: User?
+    @UserDefault("default_user")
+    static var defaultUser: User?
 }
 ```
 
@@ -44,19 +44,19 @@ You can specify any `UserDefaults` suite for each one. If you want to store on s
 ```swift
 struct Contact: Codable {
     let firstName: String
-     let lastName: String
-     let phoneNumber: String
+    let lastName: String
+    let phoneNumber: String
 }
 
 private let appSuite = UserDefaults(suiteName: "com.strawb3rryx7.userdefault.appsuite")!
 private let customSuite = UserDefaults(suiteName: "com.strawb3rryx7.userdefault.customsuite")!
 
 struct Defaults {
-     @UserDefault("primary_contact", suite: appSuite)
-      static var primaryContact: Contact?
+    @UserDefault("primary_contact", suite: appSuite)
+    static var primaryContact: Contact?
   
-      @UserDefault("has_seen_purchase_screen", defaultValue: false, suite: customSuite)
-      static var hasSeenPurchaseScreen: Bool
+    @UserDefault("has_seen_purchase_screen", defaultValue: false, suite: customSuite)
+    static var hasSeenPurchaseScreen: Bool
 }
 ```
 
