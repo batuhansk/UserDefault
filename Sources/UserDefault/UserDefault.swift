@@ -6,13 +6,14 @@
 
 import Foundation
 
-// swiftlint:disable identifier_name
 @propertyWrapper
 public struct UserDefault<T: Codable> {
+    
+    // MARK: - Properties
     private let key: String
     private let defaultValue: T
     private let userDefaults: UserDefaults
-
+    
     public var wrappedValue: T {
         get {
             return get(key) ?? defaultValue
@@ -21,6 +22,10 @@ public struct UserDefault<T: Codable> {
         }
     }
 
+    ///  Returns the object from the relevant suite with the given key.
+    ///
+    /// - Parameter key: Key of the data.
+    /// - Returns: An object which gathered from the relevant suite.
     public func get<T: Codable>(_ key: String) -> T? {
         if UserDefaults.isPrimitiveType(T.self) {
             return userDefaults.object(forKey: key) as? T
@@ -33,6 +38,10 @@ public struct UserDefault<T: Codable> {
         return nil
     }
 
+    ///  Sets data to the relevant suite with the given key.
+    ///
+    /// - Parameter key: Key of the data.
+    /// - Parameter data: A data that should be set to `UserDefaults`.
     public func set<T: Codable>(_ key: String, to data: T) {
         if UserDefaults.isPrimitiveType(T.self) {
             userDefaults.set(data, forKey: key)
@@ -46,6 +55,10 @@ public struct UserDefault<T: Codable> {
 }
 
 extension UserDefault {
+    /// Creates `UserDefault` with given key, defaultValue and userDefaults.
+    /// - Parameter key: Key of the data.
+    /// - Parameter defaultValue: Default value.
+    /// - Parameter userDefaults: UserDefaults instance.
     public init(_ key: String, defaultValue: T, userDefaults: UserDefaults = .standard) {
         self.key = key
         self.defaultValue = defaultValue
@@ -54,6 +67,10 @@ extension UserDefault {
 }
 
 extension UserDefault where T: ExpressibleByNilLiteral {
+    /// Creates `UserDefault` with given key, defaultValue and userDefaults.
+    /// - Parameter key: Key of the data.
+    /// - Parameter defaultValue: Default value.
+    /// - Parameter userDefaults: UserDefaults instance.
     public init(_ key: String, defaultValue: T = nil, userDefaults: UserDefaults = .standard) {
         self.key = key
         self.defaultValue = defaultValue
@@ -61,6 +78,7 @@ extension UserDefault where T: ExpressibleByNilLiteral {
     }
 }
 
+// MARK: - UserDefaults helpers
 extension UserDefaults {
     fileprivate static func isPrimitiveType<T: Codable>(_ type: T.Type) -> Bool {
         switch type {
@@ -86,7 +104,6 @@ extension UserDefaults {
             let data = try JSONEncoder().encode([value])
             return String(String(data: data, encoding: .utf8)!.dropFirst().dropLast())
         } catch {
-            print(error)
             return nil
         }
     }

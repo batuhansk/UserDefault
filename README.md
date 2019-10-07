@@ -4,16 +4,34 @@
 
 Primitive types of Swift which conforms `Codable` protocol internally are supported. *(String, Int, Float, Double, Data, Bool, Date, URL)*
 
-### Usage
+## Installation
+
+### Swift Package Manager:
+
+To integrate using Apple's Swift package manager, add the following as a dependency to your Package.swift:
 
 ```swift
+dependencies: [
+    .package(url: "https://github.com/strawb3rryx7/UserDefault.git", from: "master")
+]
+```
+
+### Manually
+
+Just drag the `UserDefault.swift` file into your project directory. It's all done.
+
+## Usage
+
+```swift
+import UserDefault
+
 struct Defaults {
     @UserDefault("is_discount_provided", defaultValue: false)
     static var isDiscountProvided: Bool
 }
 ```
 
-### How to Modify?
+## How to Modify?
 
 Well, that's pretty simple. You only have to access the variable through the `Defaults` struct, and set it the value.
 
