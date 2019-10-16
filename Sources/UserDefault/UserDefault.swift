@@ -26,7 +26,7 @@ public struct UserDefault<T: Codable> {
     ///
     /// - Parameter key: Key of the data.
     /// - Returns: An object which gathered from the relevant suite.
-    public func get<T: Codable>(_ key: String) -> T? {
+    private func get<T: Codable>(_ key: String) -> T? {
         if UserDefaults.isPrimitiveType(T.self) {
             return userDefaults.object(forKey: key) as? T
         }
@@ -42,7 +42,7 @@ public struct UserDefault<T: Codable> {
     ///
     /// - Parameter key: Key of the data.
     /// - Parameter data: A data that should be set to `UserDefaults`.
-    public func set<T: Codable>(_ key: String, to data: T) {
+    private func set<T: Codable>(_ key: String, to data: T) {
         if UserDefaults.isPrimitiveType(T.self) {
             userDefaults.set(data, forKey: key)
             return
@@ -56,6 +56,7 @@ public struct UserDefault<T: Codable> {
 
 extension UserDefault {
     /// Creates `UserDefault` with given key, defaultValue and userDefaults.
+    ///
     /// - Parameter key: Key of the data.
     /// - Parameter defaultValue: Default value.
     /// - Parameter userDefaults: UserDefaults instance.
@@ -68,6 +69,7 @@ extension UserDefault {
 
 extension UserDefault where T: ExpressibleByNilLiteral {
     /// Creates `UserDefault` with given key, defaultValue and userDefaults.
+    ///
     /// - Parameter key: Key of the data.
     /// - Parameter defaultValue: Default value.
     /// - Parameter userDefaults: UserDefaults instance.
