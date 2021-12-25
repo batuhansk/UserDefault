@@ -1,24 +1,19 @@
-//
-//  UserDefault.swift
-//
-//  Copyright © 2019 Batuhan Saka. All rights reserved.
-//
-
 import Foundation
 
 @propertyWrapper
 public struct UserDefault<T: Codable> {
-    
     // MARK: - Properties
     private let key: String
     private let defaultValue: T
-    private let userDefaults: UserDefaults
-    
+    private let defaults: UserDefaults
+    private let encoder: JSONEncoder
+    private let decoder: JSONDecoder
+
     public var wrappedValue: T {
         get {
-            return get(key) ?? defaultValue
+            getValue(for: key) ?? defaultValue
         } set {
-            set(key, to: newValue)
+            setValue(for: key, data: newValue)
         }
     }
 
@@ -26,99 +21,78 @@ public struct UserDefault<T: Codable> {
     ///
     /// - Parameter key: Key of the data.
     /// - Returns: An object which gathered from the relevant suite.
-    private func get<T: Codable>(_ key: String) -> T? {
-        if UserDefaults.isPrimitiveType(T.self) {
-            return userDefaults.object(forKey: key) as? T
-        }
-
-        if let value = userDefaults.string(forKey: key) {
-            return userDefaults.decode(value)
-        }
-
-        return nil
+    private func getValue<T: Codable>(for key: String) -> T? {
+        guard let value = defaults.string(forKey: key) else { return nil }
+        return defaults.decode(value, decoder: decoder)
     }
 
     ///  Sets data to the relevant suite with the given key.
     ///
     /// - Parameter key: Key of the data.
     /// - Parameter data: A data that should be set to `UserDefaults`.
-    private func set<T: Codable>(_ key: String, to data: T) {
-        if UserDefaults.isPrimitiveType(T.self) {
-            userDefaults.set(data, forKey: key)
-            return
-        }
-
-        if let value = userDefaults.encode(data) {
-            userDefaults.set(value, forKey: key)
-        }
+    private func setValue<T: Codable>(for key: String, data: T) {
+        guard let value = defaults.encode(data, encoder: encoder) else { return }
+        defaults.set(value, forKey: key)
     }
 }
 
-extension UserDefault {
+public extension UserDefault where T: ExpressibleByNilLiteral {
     /// Creates `UserDefault` with given key, defaultValue and userDefaults.
     ///
     /// - Parameter key: Key of the data.
     /// - Parameter defaultValue: Default value.
-    /// - Parameter userDefaults: UserDefaults instance.
-    public init(_ key: String, defaultValue: T, userDefaults: UserDefaults = .standard) {
+    /// - Parameter defaults: UserDefaults instance.
+    /// - Parameter encoder: JSONEncoder instance.
+    /// - Parameter decoder: JSONDecoder instance.
+    init(_ key: String,
+         defaultValue: T = nil,
+         defaults: UserDefaults = .standard,
+         encoder: JSONEncoder = JSONEncoder(),
+         decoder: JSONDecoder = JSONDecoder()) {
         self.key = key
         self.defaultValue = defaultValue
-        self.userDefaults = userDefaults
+        self.defaults = defaults
+        self.encoder = encoder
+        self.decoder = decoder
     }
 }
 
-extension UserDefault where T: ExpressibleByNilLiteral {
+public extension UserDefault {
     /// Creates `UserDefault` with given key, defaultValue and userDefaults.
     ///
     /// - Parameter key: Key of the data.
     /// - Parameter defaultValue: Default value.
-    /// - Parameter userDefaults: UserDefaults instance.
-    public init(_ key: String, defaultValue: T = nil, userDefaults: UserDefaults = .standard) {
+    /// - Parameter defaults: UserDefaults instance.
+    /// - Parameter encoder: JSONEncoder instance.
+    /// - Parameter decoder: JSONDecoder instance.
+    init(_ key: String,
+         defaultValue: T,
+         defaults: UserDefaults = .standard,
+         encoder: JSONEncoder = JSONEncoder(),
+         decoder: JSONDecoder = JSONDecoder()) {
         self.key = key
         self.defaultValue = defaultValue
-        self.userDefaults = userDefaults
+        self.defaults = defaults
+        self.encoder = encoder
+        self.decoder = decoder
     }
 }
 
 // MARK: - UserDefaults helpers
-extension UserDefaults {
-    fileprivate static func isPrimitiveType<T: Codable>(_ type: T.Type) -> Bool {
-        switch type {
-        case is String.Type,
-             is Data.Type,
-             is Bool.Type,
-             is Int.Type,
-             is Float.Type,
-             is URL.Type,
-             is Date.Type,
-             is Double.Type:
-            return true
-        default:
-            return false
-        }
-    }
-
-    fileprivate func encode<T: Codable>(_ value: T) -> String? {
+private extension UserDefaults {
+    func encode<T: Codable>(_ value: T, encoder: JSONEncoder) -> String? {
         do {
-            // Some codable values like URL and enum are encoded as a top-level
-            // string which JSON can't handle, so we need to wrap it in an array
-            // We need this: https://forums.swift.org/t/allowing-top-level-fragments-in-jsondecoder/11750
-            let data = try JSONEncoder().encode([value])
-            return String(String(data: data, encoding: .utf8)!.dropFirst().dropLast())
+            let data = try encoder.encode(value)
+            return String(data: data, encoding: .utf8)
         } catch {
             return nil
         }
     }
 
-    fileprivate func decode<T: Codable>(_ value: String) -> T? {
-        guard let data = "[\(value)]".data(using: .utf8) else {
+    func decode<T: Codable>(_ value: String, decoder: JSONDecoder) -> T? {
+        guard let data = value.data(using: .utf8) else {
             return nil
         }
-
-        do {
-            return (try JSONDecoder().decode([T].self, from: data)).first
-        } catch {
-            return nil
-        }
+        return try? decoder.decode(T.self, from: data)
     }
 }
